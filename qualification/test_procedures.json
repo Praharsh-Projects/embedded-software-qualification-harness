@@ -1,0 +1,108 @@
+{
+  "schema_version": "1.0",
+  "project": "embedded-software-qualification-harness",
+  "version": "0.1.0",
+  "baseline": "ESQH-BL-0.1.0",
+  "procedures": [
+    {
+      "id": "QTP-001",
+      "title": "Configuration and generic target contract",
+      "requirement_ids": ["SRS-PLT-001", "SRS-RES-001", "SRS-CFG-001"],
+      "case_ids": ["TC-CFG-001", "TC-CFG-002", "TC-PLT-001"],
+      "verification_method": "test",
+      "preconditions": ["Native qualification executable was built from the selected baseline."],
+      "steps": ["Execute the configuration and platform-contract cases.", "Cross-check project, version, and baseline metadata across requirements, procedures, and captured C results.", "Cross-build and inspect the ARM ELF separately as required by SQTP."],
+      "expected_results": ["Version/configuration checks and metadata identity pass.", "The host platform contract passes.", "ARM artifact inspection independently confirms architecture, entry point, retained public APIs, undefined-symbol state, and memory limits."]
+    },
+    {
+      "id": "QTP-002",
+      "title": "Boot and cooperative scheduling",
+      "requirement_ids": ["SRS-BOOT-001", "SRS-SCH-001"],
+      "case_ids": ["TC-BOOT-001", "TC-SCH-001"],
+      "verification_method": "test",
+      "preconditions": ["A fresh controller context is available."],
+      "steps": ["Initialize the controller.", "Advance deterministic scheduler ticks across the configured periods."],
+      "expected_results": ["Initialization begins in INIT.", "The fixed-period task counts match the documented schedule."]
+    },
+    {
+      "id": "QTP-003",
+      "title": "Controller state transitions",
+      "requirement_ids": ["SRS-STA-001", "SRS-FLT-001"],
+      "case_ids": ["TC-STA-001", "TC-STA-002"],
+      "verification_method": "test",
+      "preconditions": ["A fresh controller context is available."],
+      "steps": ["Complete self-test and heartbeat to exercise INIT to OPERATIONAL.", "Latch recoverable and critical faults to exercise DEGRADED and SAFE behavior.", "Attempt recovery while a critical fault remains."],
+      "expected_results": ["The expected states are reached through the documented rules.", "Recovery is rejected while a nonrecoverable fault remains."]
+    },
+    {
+      "id": "QTP-004",
+      "title": "Heartbeat sequence and watchdog boundary",
+      "requirement_ids": ["SRS-WDG-001"],
+      "case_ids": ["TC-CMD-HB-001", "TC-WDG-001"],
+      "verification_method": "test",
+      "preconditions": ["Self-test has completed in the simulated environment."],
+      "steps": ["Accept a valid heartbeat sequence and repeat it once.", "In a fresh context, advance to the 100 ms and 101 ms boundaries without another heartbeat."],
+      "expected_results": ["The fresh sequence is accepted and the repeated sequence is rejected and latched.", "The controller remains OPERATIONAL through 100 ms and enters SAFE at 101 ms."]
+    },
+    {
+      "id": "QTP-005",
+      "title": "Fault latching and controlled recovery",
+      "requirement_ids": ["SRS-FLT-001", "SRS-RCV-001", "SRS-STA-001"],
+      "case_ids": ["TC-FLT-001", "TC-RCV-001"],
+      "verification_method": "test",
+      "preconditions": ["Each case starts with a fresh valid controller context."],
+      "steps": ["Inject a recoverable interface fault.", "Request recovery and supply the required self-test/heartbeat sequence."],
+      "expected_results": ["The recoverable fault bit and DEGRADED state are latched.", "Recovery clears the allowed mask, returns through INIT, and requires self-test plus a fresh heartbeat before OPERATIONAL."]
+    },
+    {
+      "id": "QTP-006",
+      "title": "Resource boundaries and deterministic replay",
+      "requirement_ids": ["SRS-BND-001", "SRS-DET-001", "SRS-RES-001"],
+      "case_ids": ["TC-RES-001", "TC-BND-001", "TC-DET-001"],
+      "verification_method": "test",
+      "preconditions": ["Each case starts from a fresh deterministic context."],
+      "steps": ["Check host structure-size and fixed-queue boundaries.", "Replay the same input sequence twice."],
+      "expected_results": ["Host structures remain within their committed bounds and the fixed queue preserves FIFO, full, and empty behavior.", "The two normalized outputs are byte-identical.", "Linked ARM memory use is checked separately during artifact inspection."]
+    },
+    {
+      "id": "QTP-007",
+      "title": "Telemetry content and order",
+      "requirement_ids": ["SRS-TLM-001", "SRS-DET-001"],
+      "case_ids": ["TC-TLM-001"],
+      "verification_method": "test",
+      "preconditions": ["Known state, fault, setpoint, SPI-register, and counter values are loaded."],
+      "steps": ["Encode one telemetry record and test its length, sequence, state, fault bytes, and CRC placement.", "Inspect the encoder offsets for setpoint, SPI register zero, accepted counters, and rejected counter."],
+      "expected_results": ["The C case passes its representative layout and CRC checks.", "Source inspection confirms all remaining required fields occupy the documented deterministic offsets."]
+    },
+    {
+      "id": "QTP-008",
+      "title": "UART protocol validity and rejection",
+      "requirement_ids": ["SRS-UART-001", "SRS-UART-002", "SRS-BND-001"],
+      "case_ids": ["TC-IF-UART-001", "TC-IF-UART-002"],
+      "verification_method": "test",
+      "preconditions": ["A fresh output frame and bounded wire buffer are available."],
+      "steps": ["Encode and decode a 64-byte UART payload.", "Reject corrupt-CRC, truncated, wrong-marker, wrong-interface-byte, and invalid-interface-enum buffers.", "Attempt to encode a 65-byte payload while monitoring caller-owned output sentinels."],
+      "expected_results": ["The valid frame round-trips without field changes.", "Every invalid buffer returns its documented error without publishing a decoded frame.", "Rejected encode/decode operations preserve caller-owned destinations."]
+    },
+    {
+      "id": "QTP-009",
+      "title": "SPI and classic CAN model boundaries",
+      "requirement_ids": ["SRS-SPI-001", "SRS-CAN-001", "SRS-BND-001"],
+      "case_ids": ["TC-IF-SPI-001", "TC-IF-CAN-001"],
+      "verification_method": "test",
+      "preconditions": ["Fresh SPI and CAN models are available."],
+      "steps": ["Round-trip a bounded SPI frame, attempt a 33-byte frame, and read/write valid and invalid virtual registers.", "Round-trip an eight-byte classic CAN frame and attempt a nine-byte payload and an identifier above 0x7FF."],
+      "expected_results": ["Valid modeled operations succeed.", "Invalid SPI lengths/addresses and invalid CAN lengths/identifiers return the documented errors."]
+    },
+    {
+      "id": "QTP-010",
+      "title": "Ethernet-style datagram model boundaries",
+      "requirement_ids": ["SRS-ETH-001", "SRS-BND-001"],
+      "case_ids": ["TC-IF-ETH-001"],
+      "verification_method": "test",
+      "preconditions": ["A fresh datagram model is available."],
+      "steps": ["Round-trip zero-byte and 256-byte payloads.", "Attempt to encode a 257-byte payload."],
+      "expected_results": ["Both valid boundaries round-trip without field changes.", "The 257-byte payload is rejected before copying."]
+    }
+  ]
+}

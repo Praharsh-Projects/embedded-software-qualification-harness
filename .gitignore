@@ -1,0 +1,35 @@
+# Build products
+/build/
+/dist/
+/artifacts/
+*.o
+*.a
+*.elf
+*.bin
+*.hex
+*.map
+*.d
+
+# Test and analysis output
+*.gcda
+*.gcno
+*.gcov
+coverage/
+.coverage
+.pytest_cache/
+__pycache__/
+*.py[cod]
+
+# Python environments
+.venv/
+venv/
+
+# Editors and macOS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Generated qualification results
+/qualification/results/
+/reports/

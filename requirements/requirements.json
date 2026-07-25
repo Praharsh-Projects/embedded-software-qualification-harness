@@ -1,0 +1,144 @@
+{
+  "schema_version": "1.0",
+  "project": "embedded-software-qualification-harness",
+  "version": "0.1.0",
+  "baseline": "ESQH-BL-0.1.0",
+  "requirements": [
+    {
+      "id": "SRS-PLT-001",
+      "title": "Freestanding Cortex-M0+ artifact",
+      "statement": "The build shall produce a little-endian ARM EABI freestanding ELF targeting the generic Cortex-M0+ instruction set with Reset_Handler as its entry point.",
+      "category": "platform",
+      "design_ids": ["SSDD-CMP-001"],
+      "verification_methods": ["test", "inspection"]
+    },
+    {
+      "id": "SRS-BOOT-001",
+      "title": "Controlled initialization",
+      "statement": "Controller initialization with a valid configuration shall clear runtime state and enter the INIT state.",
+      "category": "functional",
+      "design_ids": ["SSDD-CMP-003"],
+      "verification_methods": ["test", "inspection"]
+    },
+    {
+      "id": "SRS-SCH-001",
+      "title": "Cooperative task dispatch",
+      "statement": "The application shall dispatch fixed 1 ms, 10 ms, and 100 ms cooperative tasks using bounded counters.",
+      "category": "functional",
+      "design_ids": ["SSDD-CMP-002"],
+      "verification_methods": ["test"]
+    },
+    {
+      "id": "SRS-STA-001",
+      "title": "Controller states",
+      "statement": "The controller shall use only the INIT, OPERATIONAL, DEGRADED, and SAFE states and shall change state only through the documented self-test, heartbeat, fault, and recovery rules.",
+      "category": "functional",
+      "design_ids": ["SSDD-CMP-003"],
+      "verification_methods": ["test"]
+    },
+    {
+      "id": "SRS-UART-001",
+      "title": "Valid UART frame handling",
+      "statement": "The UART protocol component shall decode each complete bounded frame with the valid marker, interface field, length, and CRC exactly once.",
+      "category": "interface",
+      "design_ids": ["SSDD-CMP-004"],
+      "verification_methods": ["test"]
+    },
+    {
+      "id": "SRS-UART-002",
+      "title": "Invalid UART frame rejection",
+      "statement": "The UART protocol component shall reject truncated, oversized, marker/interface-mismatched, and invalid-CRC complete buffers without publishing a decoded frame.",
+      "category": "safety",
+      "design_ids": ["SSDD-CMP-004"],
+      "verification_methods": ["test"]
+    },
+    {
+      "id": "SRS-SPI-001",
+      "title": "Bounded SPI model",
+      "statement": "The SPI model shall provide deterministic reads and writes over sixteen virtual registers and shall reject invalid addresses and transfer lengths.",
+      "category": "interface",
+      "design_ids": ["SSDD-CMP-005"],
+      "verification_methods": ["test"]
+    },
+    {
+      "id": "SRS-CAN-001",
+      "title": "Bounded classic CAN model",
+      "statement": "The CAN model shall accept only eleven-bit identifiers and payload lengths from zero through eight bytes and shall reject out-of-range input.",
+      "category": "interface",
+      "design_ids": ["SSDD-CMP-006"],
+      "verification_methods": ["test"]
+    },
+    {
+      "id": "SRS-ETH-001",
+      "title": "Bounded Ethernet-style datagram model",
+      "statement": "The Ethernet-style model shall accept payloads from zero through 256 bytes and shall reject oversized input.",
+      "category": "interface",
+      "design_ids": ["SSDD-CMP-007"],
+      "verification_methods": ["test"]
+    },
+    {
+      "id": "SRS-TLM-001",
+      "title": "Deterministic telemetry content",
+      "statement": "The 24-byte telemetry record shall contain sequence, controller state, fault bitmap, setpoint, SPI register zero, five interface counters, and CRC-16 in a deterministic field order.",
+      "category": "functional",
+      "design_ids": ["SSDD-CMP-009"],
+      "verification_methods": ["test", "inspection"]
+    },
+    {
+      "id": "SRS-FLT-001",
+      "title": "Fault latching and severity",
+      "statement": "The fault handler shall latch supplied fault bits, drive recoverable faults to DEGRADED, and drive critical or nonrecoverable faults to SAFE.",
+      "category": "safety",
+      "design_ids": ["SSDD-CMP-008"],
+      "verification_methods": ["test"]
+    },
+    {
+      "id": "SRS-WDG-001",
+      "title": "Control heartbeat timeout",
+      "statement": "More than 100 simulated milliseconds without a valid control heartbeat shall force the controller into SAFE.",
+      "category": "safety",
+      "design_ids": ["SSDD-CMP-002", "SSDD-CMP-003", "SSDD-CMP-008"],
+      "verification_methods": ["test"]
+    },
+    {
+      "id": "SRS-RCV-001",
+      "title": "Controlled recovery",
+      "statement": "A recovery command shall clear only recoverable faults and shall require successful self-test and a fresh heartbeat before the controller returns to OPERATIONAL.",
+      "category": "safety",
+      "design_ids": ["SSDD-CMP-003", "SSDD-CMP-008"],
+      "verification_methods": ["test"]
+    },
+    {
+      "id": "SRS-BND-001",
+      "title": "Bounded storage",
+      "statement": "Runtime state and interface queues shall use fixed-size storage with explicit compile-time bounds.",
+      "category": "constraint",
+      "design_ids": ["SSDD-CMP-001", "SSDD-CMP-002", "SSDD-CMP-004", "SSDD-CMP-005", "SSDD-CMP-006", "SSDD-CMP-007", "SSDD-CMP-008", "SSDD-CMP-009"],
+      "verification_methods": ["test", "analysis", "inspection"]
+    },
+    {
+      "id": "SRS-DET-001",
+      "title": "Repeatable behavior",
+      "statement": "Identical initial state and input traces shall produce byte-identical telemetry and normalized result output.",
+      "category": "quality",
+      "design_ids": ["SSDD-CMP-002", "SSDD-CMP-003", "SSDD-CMP-009", "SSDD-CMP-010"],
+      "verification_methods": ["test"]
+    },
+    {
+      "id": "SRS-RES-001",
+      "title": "Static resource budget",
+      "statement": "The linked artifact shall use less than 64 KiB of flash and less than 8 KiB of statically allocated RAM.",
+      "category": "performance",
+      "design_ids": ["SSDD-CMP-001"],
+      "verification_methods": ["test", "analysis"]
+    },
+    {
+      "id": "SRS-CFG-001",
+      "title": "Configuration identity",
+      "statement": "The build and qualification outputs shall expose the repository version and configuration baseline identifier.",
+      "category": "configuration",
+      "design_ids": ["SSDD-CMP-001", "SSDD-CMP-011"],
+      "verification_methods": ["test", "inspection"]
+    }
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "schema_version": "1.0",
+  "project": "embedded-software-qualification-harness",
+  "version": "0.1.0",
+  "baseline": "ESQH-BL-0.1.0",
+  "configuration_items": [
+    {
+      "id": "CI-001",
+      "name": "Portable firmware and application source",
+      "paths": ["include/", "src/", "firmware/"],
+      "control": "Git commit and release tag"
+    },
+    {
+      "id": "CI-002",
+      "name": "Host interface simulation and qualification executable",
+      "paths": ["src/", "tests/"],
+      "control": "Git commit and automated native build"
+    },
+    {
+      "id": "CI-003",
+      "name": "Build and cross-toolchain configuration",
+      "paths": ["CMakeLists.txt", "cmake/", "Makefile"],
+      "control": "Git commit and CI execution"
+    },
+    {
+      "id": "CI-004",
+      "name": "Unit and integration verification source",
+      "paths": ["tests/"],
+      "control": "Git commit and CTest result"
+    },
+    {
+      "id": "CI-005",
+      "name": "Qualification definitions and automation",
+      "paths": ["qualification/", "tools/", "requirements/"],
+      "control": "Git commit, schema validation, and qualification result"
+    },
+    {
+      "id": "CI-006",
+      "name": "Lifecycle documentation",
+      "paths": ["docs/"],
+      "control": "Git commit and traceability check"
+    },
+    {
+      "id": "CI-007",
+      "name": "Continuous integration workflow",
+      "paths": [".github/workflows/"],
+      "control": "Git commit and GitHub Actions run"
+    },
+    {
+      "id": "CI-008",
+      "name": "Generated evidence and ARM artifacts",
+      "paths": ["build/arm/", "build/qualification/"],
+      "control": "Generated per commit; CI artifact checksums; not committed"
+    }
+  ]
+}
