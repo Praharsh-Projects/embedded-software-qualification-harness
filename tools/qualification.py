@@ -19,6 +19,11 @@ REPORT_SCHEMA_VERSION = 1
 EXIT_OK = 0
 EXIT_QUALIFICATION_FAILED = 1
 EXIT_INPUT_ERROR = 2
+HOST_EVIDENCE_SCOPE = "host-executable qualification cases"
+ARM_EXTERNAL_GATE_NOTE = (
+    "ARM inspection remains required for SRS-PLT-001 and the ARM portion of "
+    "SRS-RES-001."
+)
 
 _PASS_STATUSES = {"pass", "passed", "success", "successful", "ok"}
 _FAIL_STATUSES = {"fail", "failed", "failure", "error"}
@@ -109,6 +114,16 @@ class InputValidationError(ValueError):
     def __init__(self, issues: Sequence[Issue]):
         super().__init__("qualification input validation failed")
         self.issues = tuple(issues)
+
+
+def _external_gates() -> dict[str, dict[str, Any]]:
+    return {
+        "arm_inspection": {
+            "note": ARM_EXTERNAL_GATE_NOTE,
+            "requirement_ids": ["SRS-PLT-001", "SRS-RES-001"],
+            "status": "REQUIRED",
+        }
+    }
 
 
 def _load_json(path: Path, *, kind: str) -> Any:
@@ -762,7 +777,7 @@ def build_report(
     passed_cases = sum(case.status == "PASS" for case in c_cases)
     failed_cases = sum(case.status == "FAIL" for case in c_cases)
     incomplete_cases = sum(case.status == "INCOMPLETE" for case in c_cases)
-    result = "PASS" if not ordered_issues else "FAIL"
+    result = "HOST_PASS" if not ordered_issues else "FAIL"
     return {
         "baseline": metadata.baseline,
         "binary_exit_code": binary_exit_code,
@@ -775,6 +790,8 @@ def build_report(
             }
             for case in c_cases
         ],
+        "evidence_scope": HOST_EVIDENCE_SCOPE,
+        "external_gates": _external_gates(),
         "issues": [issue.as_dict() for issue in ordered_issues],
         "project": metadata.project,
         "procedures": procedure_records,
@@ -804,6 +821,8 @@ def validation_failure_report(
         "baseline": metadata.baseline if metadata is not None else None,
         "binary_exit_code": None,
         "c_cases": [],
+        "evidence_scope": HOST_EVIDENCE_SCOPE,
+        "external_gates": _external_gates(),
         "issues": [item.as_dict() for item in ordered],
         "project": metadata.project if metadata is not None else None,
         "procedures": [],
@@ -824,17 +843,20 @@ def validation_failure_report(
 
 
 def report_exit_code(report: Mapping[str, Any], *, input_error: bool = False) -> int:
-    if report.get("result") == "PASS":
+    if report.get("result") == "HOST_PASS":
         return EXIT_OK
     return EXIT_INPUT_ERROR if input_error else EXIT_QUALIFICATION_FAILED
 
 
 def render_markdown(report: Mapping[str, Any]) -> str:
     summary = report["summary"]
+    arm_gate = report["external_gates"]["arm_inspection"]
     lines = [
-        "# Software Qualification Report",
+        "# Host-Executable Qualification Report",
         "",
-        f"**Result:** {report['result']}",
+        f"**Host-only result:** {report['result']}",
+        "",
+        f"**Evidence scope:** {report['evidence_scope']}",
         "",
         "## Configuration Identity",
         "",
@@ -843,6 +865,10 @@ def render_markdown(report: Mapping[str, Any]) -> str:
         f"- Baseline: {report.get('baseline') or 'Unavailable'}",
         f"- Captured binary exit code: "
         f"{report['binary_exit_code'] if report.get('binary_exit_code') is not None else 'Unavailable'}",
+        "",
+        "## External Gates",
+        "",
+        f"- **ARM inspection — {arm_gate['status']}:** {arm_gate['note']}",
         "",
         "## Summary",
         "",
@@ -854,9 +880,9 @@ def render_markdown(report: Mapping[str, Any]) -> str:
         f"- Incomplete C cases: {summary['c_cases_incomplete']}",
         f"- Findings: {summary['issues']}",
         "",
-        "## Requirement Traceability",
+        "## Host Case Traceability",
         "",
-        "| Requirement | Procedures | C cases | Status |",
+        "| Requirement | Procedures | C cases | Host case status |",
         "|---|---|---|---|",
     ]
     for row in report["traceability"]:
@@ -871,9 +897,9 @@ def render_markdown(report: Mapping[str, Any]) -> str:
     lines.extend(
         [
             "",
-            "## Qualification Procedures",
+            "## Host Qualification Procedures",
             "",
-            "| Procedure | Verification method | Requirements | C cases | Status |",
+            "| Procedure | Verification method | Requirements | C cases | Host case status |",
             "|---|---|---|---|---|",
         ]
     )

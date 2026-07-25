@@ -40,12 +40,14 @@ linker garbage collection cannot turn full-core inspection into subset-only
 evidence. The gate is zero in normal startup and the path is never behavioral
 target evidence.
 
-### SSDD-CMP-002 — Application and cooperative scheduler
+### SSDD-CMP-002 — Application and cooperative period counters
 
-Owns the application context and bounded 1 ms, 10 ms, and 100 ms counters.
-Each scheduler step consumes a caller-supplied simulated tick. Counters are
-decremented/reloaded without division. There is no preemption, RTOS, thread, or
-dynamic task creation.
+Owns the application context and bounded 1 ms, 10 ms, and 100 ms release
+counters. Each step consumes one caller-supplied simulated millisecond,
+increments the 1 ms release count, and increments the 10 ms and 100 ms release
+counts at their respective period boundaries. These counters record releases;
+the component does not invoke task bodies. There is no preemption, RTOS,
+thread, or dynamic task creation.
 
 ### SSDD-CMP-003 — Controller state machine
 
@@ -55,16 +57,21 @@ events. The transition policy is:
 | Current state | Event | Next state |
 |---|---|---|
 | `INIT` | self-test passed and heartbeat current | `OPERATIONAL` |
-| `INIT` | self-test failed | `SAFE` |
-| `OPERATIONAL` | recoverable interface fault | `DEGRADED` |
-| `OPERATIONAL` or `DEGRADED` | heartbeat expired or fatal fault | `SAFE` |
-| `DEGRADED` | recovery accepted | `INIT` |
+| `INIT` or `OPERATIONAL` | recoverable fault | `DEGRADED` |
+| `DEGRADED` | additional recoverable fault | `DEGRADED` |
+| `INIT`, `OPERATIONAL`, or `DEGRADED` | critical or nonrecoverable fault | `SAFE` |
+| `INIT`, after self-test passes | no heartbeat for more than the configured timeout | `SAFE` |
+| `OPERATIONAL` or self-tested `DEGRADED` | heartbeat age exceeds the configured timeout | `SAFE` |
+| `DEGRADED` with only recoverable faults | recovery accepted | `INIT` |
 | `SAFE` | recovery requested | `SAFE` (request rejected) |
 
-After recovery, a fresh self-test and heartbeat are required to move from
-`INIT` to `OPERATIONAL`. Returning from `SAFE` requires a platform reset; the
-project recovery command cannot clear a fatal or watchdog condition.
-All other transitions are rejected and leave the state unchanged.
+Self-test completion alone leaves the controller in `INIT`, but it activates
+watchdog supervision: if no heartbeat has been accepted by 101 ms with the
+default 100 ms timeout, the watchdog fault drives `SAFE`. After accepted
+recovery, a fresh self-test and heartbeat are required to move from `INIT` to
+`OPERATIONAL`. Returning from `SAFE` requires a platform reset; the project
+recovery command cannot clear a fatal or watchdog condition. All other
+transitions are rejected and leave the state unchanged.
 
 ### SSDD-CMP-004 — UART protocol parser
 
@@ -104,8 +111,9 @@ Recovery clears only the documented recoverable mask.
 
 Serializes a 16-bit sequence, controller state, reserved byte, 32-bit fault
 bitmap, setpoint, SPI register zero, four accepted counters, one rejected
-counter, and CRC-16 into a 24-byte record. It does not include wall-clock time,
-addresses, or nondeterministic identifiers.
+counter, and CRC-16 into a 24-byte record. The sequence increments before each
+record and wraps modulo 65,536, so `65,535` is followed by `0`. The record does
+not include wall-clock time, addresses, or nondeterministic identifiers.
 
 ### SSDD-CMP-010 — Host scenario registry and qualification target
 

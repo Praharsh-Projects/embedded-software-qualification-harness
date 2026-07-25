@@ -19,14 +19,14 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Check out source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Verify host tests and qualification
         run: ./scripts/verify.sh host
 
       - name: Upload qualification evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: qualification-${{ matrix.os }}
           path: build/qualification/
@@ -37,7 +37,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check out source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Install ARM GNU toolchain
         run: |
@@ -49,7 +49,7 @@ jobs:
 
       - name: Upload ARM evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: generic-cortex-m0plus-artifact
           path: |

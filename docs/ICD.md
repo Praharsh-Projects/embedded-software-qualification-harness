@@ -26,7 +26,12 @@ Interface operations return one of:
 | `ESQH_ERR_SEQUENCE` | Command sequence is zero, repeated, or stale |
 | `ESQH_ERR_STATE` | Current controller state/configuration forbids the action |
 
-Rejected operations do not partially mutate the destination object.
+Rejected frame encode/decode calls preserve their caller-owned output buffer,
+`written` value, or destination frame as covered by the negative interface
+cases. This atomicity statement does not apply to controller operations:
+controller rejection may intentionally increment the rejected counter, latch a
+fault, and change controller state. A rejected full-queue push preserves the
+frames already in the queue.
 
 ## 3. UART model
 
@@ -99,7 +104,7 @@ logic.
 Telemetry is exactly 24 bytes and uses big-endian integers:
 
 ```text
-bytes 0..1    monotonically increasing 16-bit sequence
+bytes 0..1    16-bit sequence, incremented before encoding and wrapping modulo 65,536
 byte 2        controller state
 byte 3        reserved, zero
 bytes 4..7    32-bit fault bitmap
@@ -114,6 +119,8 @@ bytes 22..23  CRC-16/CCITT over bytes 0..21
 ```
 
 Qualification JSON is a host-reporting interface, not firmware telemetry.
+The telemetry sequence therefore changes from `65,535` to `0` on the next
+record; monotonic ordering must not be assumed across that wrap.
 
 ## 8. Qualification executable
 

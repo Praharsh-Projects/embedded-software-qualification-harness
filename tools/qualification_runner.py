@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Command-line entry point for the deterministic qualification runner."""
+"""Command-line entry point for host-executable qualification reconciliation."""
 
 from __future__ import annotations
 
@@ -15,7 +15,10 @@ from tools.qualification import run_qualification
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Reconcile one C qualification result source and write reports."
+        description=(
+            "Reconcile one host-executable C qualification result source and "
+            "write host-scoped reports."
+        )
     )
     source = parser.add_mutually_exclusive_group(required=True)
     source.add_argument("--binary", type=Path, help="Execute this C test executable once")

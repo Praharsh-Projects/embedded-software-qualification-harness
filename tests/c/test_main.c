@@ -120,9 +120,14 @@ static bool tc_wdg_001(void) {
     esqh_controller_t controller = make_controller();
     unsigned int index;
     esqh_controller_mark_self_test_passed(&no_heartbeat);
-    for (index = 0u; index <= ESQH_WATCHDOG_DEFAULT_MS; ++index) {
+    for (index = 0u; index < ESQH_WATCHDOG_DEFAULT_MS; ++index) {
         esqh_controller_tick(&no_heartbeat);
     }
+    if (no_heartbeat.state != ESQH_STATE_INIT ||
+        (no_heartbeat.fault_bitmap & ESQH_FAULT_WATCHDOG) != 0u) {
+        return false;
+    }
+    esqh_controller_tick(&no_heartbeat);
     if (no_heartbeat.state != ESQH_STATE_SAFE ||
         (no_heartbeat.fault_bitmap & ESQH_FAULT_WATCHDOG) == 0u) {
         return false;
@@ -254,10 +259,36 @@ static bool tc_if_uart_002(void) {
     esqh_frame_t output = make_frame(ESQH_INTERFACE_CAN, 3u);
     esqh_frame_t unchanged = output;
     uint8_t wire[32];
+    uint8_t oversized_wire[8u + 65u + 2u];
     uint8_t protected_output[80];
+    uint16_t oversized_crc;
     size_t written = 0u;
     size_t protected_written = 73u;
     size_t index;
+
+    oversized_wire[0] = 0xa5u;
+    oversized_wire[1] = (uint8_t)ESQH_INTERFACE_UART;
+    oversized_wire[2] = 0x12u;
+    oversized_wire[3] = 0x01u;
+    oversized_wire[4] = 0x00u;
+    oversized_wire[5] = 0x07u;
+    oversized_wire[6] = 0x00u;
+    oversized_wire[7] = 65u;
+    for (index = 0u; index < 65u; ++index) {
+        oversized_wire[8u + index] = (uint8_t)(index ^ 0x5au);
+    }
+    oversized_crc = esqh_crc16(oversized_wire, 8u + 65u);
+    oversized_wire[8u + 65u] = (uint8_t)(oversized_crc >> 8u);
+    oversized_wire[8u + 65u + 1u] = (uint8_t)oversized_crc;
+    if (esqh_frame_decode(
+            ESQH_INTERFACE_UART,
+            oversized_wire,
+            sizeof(oversized_wire),
+            &output
+        ) != ESQH_ERR_LENGTH ||
+        !frames_equal(&output, &unchanged)) {
+        return false;
+    }
 
     for (index = 0u; index < sizeof(protected_output); ++index) {
         protected_output[index] = 0xa7u;

@@ -43,8 +43,9 @@ Only transitions documented in `SSDD.md` are permitted.
   instruction set with `Reset_Handler` as its entry point.
 - **SRS-BOOT-001 — Controlled initialization.** Controller initialization with
   a valid configuration shall clear runtime state and enter the `INIT` state.
-- **SRS-SCH-001 — Cooperative task dispatch.** The application shall dispatch
-  fixed 1 ms, 10 ms, and 100 ms cooperative tasks using bounded counters.
+- **SRS-SCH-001 — Cooperative period accounting.** The application shall count
+  fixed 1 ms, 10 ms, and 100 ms cooperative release periods using bounded
+  counters; it does not execute task bodies.
 - **SRS-STA-001 — Controller states.** The controller shall implement the
   `INIT`, `OPERATIONAL`, `DEGRADED`, and `SAFE` states and shall change state
   only through the documented self-test, heartbeat, fault, and recovery rules.
@@ -52,11 +53,14 @@ Only transitions documented in `SSDD.md` are permitted.
 ### 4.2 Interface behavior
 
 - **SRS-UART-001 — Valid UART frame handling.** The UART protocol component
-  shall decode each complete bounded frame with the valid marker, interface
-  field, length, and CRC exactly once.
+  shall, for each decode call supplied one complete bounded UART frame with a
+  valid marker, UART interface field, supported payload length, and CRC, return
+  `ESQH_OK` and populate the caller-provided destination with that frame.
 - **SRS-UART-002 — Invalid UART frame rejection.** The UART protocol component
-  shall reject truncated, oversized, marker/interface-mismatched, and
-  invalid-CRC complete buffers without publishing a decoded frame.
+  shall reject truncated buffers, invalid-CRC buffers, marker/interface-
+  mismatched buffers, and structurally complete valid-CRC buffers with payloads
+  greater than 64 bytes while leaving the destination frame unchanged; encode
+  rejection shall leave the output buffer and written count unchanged.
 - **SRS-SPI-001 — Bounded SPI model.** The SPI model shall provide deterministic
   reads and writes over sixteen virtual registers and shall reject invalid
   addresses and transfer lengths.

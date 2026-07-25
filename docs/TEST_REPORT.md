@@ -4,7 +4,7 @@ Document ID: `ESQH-SQTR-001`
 Version: `0.1.0`
 Baseline: `ESQH-BL-0.1.0`
 Execution date: `2026-07-26`
-Status: **PASS — local pre-publication baseline**
+Status: **PASS — version 0.1.0 release baseline**
 
 ## 1. Result summary
 
@@ -37,11 +37,11 @@ status, deterministic reporting, failure handling, and traceability behavior.
 - ARM compiler: `arm-none-eabi-gcc` 16.1.0
 - Repository version: 0.1.0
 - Configuration baseline: `ESQH-BL-0.1.0`
-- Source identity: local working tree before the initial repository commit
+- Source identity: annotated release tag `v0.1.0`
+- Public verification: GitHub Actions `Verification` workflow on `main`
 
-The absence of an immutable commit SHA is a recorded pre-publication deviation.
-This local result must be repeated in CI after the initial commit; it is not a
-substitute for that CI result.
+The tag is created only after local verification and the public workflow pass.
+Resolve it to the immutable commit with `git rev-parse v0.1.0^{commit}`.
 
 ## 3. ARM artifact evidence
 
@@ -88,7 +88,6 @@ electrical, peripheral, interrupt, or real-time behavior on an MCU.
 - No physical-target execution or hardware-in-the-loop activity was planned or
   performed.
 - No organizationally independent verifier reviewed this baseline.
-- The run predates the initial commit, so it has no immutable source SHA.
-- Re-run `./scripts/verify.sh all` and the GitHub Actions workflow after the
-  initial commit. Record the passing commit and CI URL before using CI status as
-  public evidence.
+- The public workflow repeats host verification on Ubuntu and macOS and the ARM
+  artifact inspection on Ubuntu. Its result is commit-specific; the badge is
+  not evidence for later unverified changes.

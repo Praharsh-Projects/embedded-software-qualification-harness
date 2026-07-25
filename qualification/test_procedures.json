@@ -16,13 +16,13 @@
     },
     {
       "id": "QTP-002",
-      "title": "Boot and cooperative scheduling",
+      "title": "Boot and cooperative period accounting",
       "requirement_ids": ["SRS-BOOT-001", "SRS-SCH-001"],
       "case_ids": ["TC-BOOT-001", "TC-SCH-001"],
       "verification_method": "test",
       "preconditions": ["A fresh controller context is available."],
-      "steps": ["Initialize the controller.", "Advance deterministic scheduler ticks across the configured periods."],
-      "expected_results": ["Initialization begins in INIT.", "The fixed-period task counts match the documented schedule."]
+      "steps": ["Initialize the controller.", "Advance deterministic millisecond ticks across the configured release periods."],
+      "expected_results": ["Initialization begins in INIT.", "The 1 ms, 10 ms, and 100 ms release counts match the documented periods; no task-body execution is claimed."]
     },
     {
       "id": "QTP-003",
@@ -41,8 +41,8 @@
       "case_ids": ["TC-CMD-HB-001", "TC-WDG-001"],
       "verification_method": "test",
       "preconditions": ["Self-test has completed in the simulated environment."],
-      "steps": ["Accept a valid heartbeat sequence and repeat it once.", "In a fresh context, advance to the 100 ms and 101 ms boundaries without another heartbeat."],
-      "expected_results": ["The fresh sequence is accepted and the repeated sequence is rejected and latched.", "The controller remains OPERATIONAL through 100 ms and enters SAFE at 101 ms."]
+      "steps": ["Accept a valid heartbeat sequence and repeat it once.", "In a fresh context, complete self-test without accepting any heartbeat, then advance through 100 ms and 101 ms.", "In another fresh context, complete self-test, accept a heartbeat, then advance through the same boundaries without a subsequent heartbeat."],
+      "expected_results": ["The fresh sequence is accepted and the repeated sequence is rejected and latched.", "The self-tested no-heartbeat controller remains INIT through 100 ms and enters SAFE at 101 ms.", "The heartbeat controller remains OPERATIONAL through 100 ms and enters SAFE at 101 ms."]
     },
     {
       "id": "QTP-005",

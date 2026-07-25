@@ -24,17 +24,18 @@ Cases: `TC-CFG-001`, `TC-CFG-002`, `TC-PLT-001`
 Pass: all three host cases pass and the independent ARM artifact inspection
 passes. `TC-PLT-001` alone is not evidence of ARM target execution.
 
-## QTP-002 — Boot and cooperative scheduling
+## QTP-002 — Boot and cooperative period accounting
 
 Cases: `TC-BOOT-001`, `TC-SCH-001`
 
 1. Initialize the application context.
 2. Confirm the initial controller state is `INIT`.
-3. Advance deterministic ticks across 1 ms, 10 ms, and 100 ms boundaries.
-4. Compare dispatch counts with the configured periods.
+3. Advance deterministic millisecond ticks across 1 ms, 10 ms, and 100 ms
+   release boundaries.
+4. Compare release counts with the configured periods.
 
-Pass: initialization and all fixed-period counts match the expected values,
-with no extra dispatch.
+Pass: initialization and all fixed-period release counts match the expected
+values. The test counts releases and does not execute task bodies.
 
 ## QTP-003 — Controller state transitions
 
@@ -56,12 +57,18 @@ Cases: `TC-CMD-HB-001`, `TC-WDG-001`
 1. Complete simulated self-test and call the heartbeat operation with a valid
    sequence.
 2. Repeat that sequence and confirm it is rejected and latched.
-3. In a fresh context, accept a heartbeat and advance simulated time to 100 ms.
-4. Confirm the state is still `OPERATIONAL`.
-5. Advance one additional millisecond.
+3. In a fresh context, complete self-test without accepting a heartbeat and
+   advance simulated time to 100 ms.
+4. Confirm the state is still `INIT`, then advance one additional millisecond
+   and confirm `SAFE`.
+5. In another fresh context, complete self-test, accept a heartbeat, and
+   advance simulated time to 100 ms.
+6. Confirm the state is still `OPERATIONAL`, then advance one additional
+   millisecond and confirm `SAFE`.
 
-Pass: sequence guarding and the 100/101 ms boundary match the requirements, and
-expiry forces `SAFE` without relying on wall-clock timing.
+Pass: sequence guarding and both 100/101 ms watchdog branches match the
+requirements. After self-test, expiry forces `SAFE` whether no heartbeat was
+ever accepted or the last accepted heartbeat became stale.
 
 ## QTP-005 — Fault latching and controlled recovery
 

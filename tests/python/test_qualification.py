@@ -149,13 +149,40 @@ class QualificationRunnerTests(unittest.TestCase):
         self.assertEqual(report, second_report)
         self.assertEqual(first_json, self.json_report.read_bytes())
         self.assertEqual(first_markdown, self.markdown_report.read_bytes())
-        self.assertEqual(report["result"], "PASS")
+        self.assertEqual(report["result"], "HOST_PASS")
+        self.assertEqual(
+            report["evidence_scope"],
+            "host-executable qualification cases",
+        )
+        self.assertEqual(
+            report["external_gates"]["arm_inspection"],
+            {
+                "note": (
+                    "ARM inspection remains required for SRS-PLT-001 and the "
+                    "ARM portion of SRS-RES-001."
+                ),
+                "requirement_ids": ["SRS-PLT-001", "SRS-RES-001"],
+                "status": "REQUIRED",
+            },
+        )
         self.assertEqual(
             {key: report[key] for key in ("project", "version", "baseline")},
             self.METADATA,
         )
         self.assertEqual(report["binary_exit_code"], 0)
-        self.assertIn("- Baseline: TEST-BL-9.8.7", first_markdown.decode("utf-8"))
+        markdown = first_markdown.decode("utf-8")
+        self.assertIn("# Host-Executable Qualification Report", markdown)
+        self.assertIn("**Host-only result:** HOST_PASS", markdown)
+        self.assertIn(
+            "**Evidence scope:** host-executable qualification cases",
+            markdown,
+        )
+        self.assertIn("- Baseline: TEST-BL-9.8.7", markdown)
+        self.assertIn(
+            "ARM inspection remains required for SRS-PLT-001 and the ARM "
+            "portion of SRS-RES-001.",
+            markdown,
+        )
         self.assertEqual(report["summary"]["c_cases_passed"], 2)
         self.assertEqual(
             [case["id"] for case in report["c_cases"]],
@@ -397,6 +424,7 @@ class QualificationRunnerTests(unittest.TestCase):
         )
 
         self.assertEqual(exit_code, EXIT_QUALIFICATION_FAILED)
+        self.assertEqual(report["result"], "FAIL")
         self.assertEqual(report["binary_exit_code"], 7)
         self.assertEqual(
             {issue["code"] for issue in report["issues"]},

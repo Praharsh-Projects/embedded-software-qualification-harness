@@ -1,5 +1,7 @@
 # Embedded Software Qualification Harness
 
+[![Verification](https://github.com/Praharsh-Projects/embedded-software-qualification-harness/actions/workflows/ci.yml/badge.svg)](https://github.com/Praharsh-Projects/embedded-software-qualification-harness/actions/workflows/ci.yml)
+
 A bounded portfolio project demonstrating a small embedded-software lifecycle:
 requirements, design, interface contracts, freestanding C11, host-executable
 verification, configuration control, and traceable qualification evidence.

@@ -22,8 +22,8 @@
     },
     {
       "id": "SRS-SCH-001",
-      "title": "Cooperative task dispatch",
-      "statement": "The application shall dispatch fixed 1 ms, 10 ms, and 100 ms cooperative tasks using bounded counters.",
+      "title": "Cooperative period accounting",
+      "statement": "The application shall count fixed 1 ms, 10 ms, and 100 ms cooperative release periods using bounded counters; it does not execute task bodies.",
       "category": "functional",
       "design_ids": ["SSDD-CMP-002"],
       "verification_methods": ["test"]
@@ -39,7 +39,7 @@
     {
       "id": "SRS-UART-001",
       "title": "Valid UART frame handling",
-      "statement": "The UART protocol component shall decode each complete bounded frame with the valid marker, interface field, length, and CRC exactly once.",
+      "statement": "For each decode call supplied one complete bounded UART frame with a valid marker, UART interface field, supported payload length, and CRC, the component shall return ESQH_OK and populate the caller-provided destination with that frame.",
       "category": "interface",
       "design_ids": ["SSDD-CMP-004"],
       "verification_methods": ["test"]
@@ -47,7 +47,7 @@
     {
       "id": "SRS-UART-002",
       "title": "Invalid UART frame rejection",
-      "statement": "The UART protocol component shall reject truncated, oversized, marker/interface-mismatched, and invalid-CRC complete buffers without publishing a decoded frame.",
+      "statement": "The UART protocol component shall reject truncated buffers, invalid-CRC buffers, marker/interface-mismatched buffers, and structurally complete valid-CRC buffers with payloads greater than 64 bytes while leaving the destination frame unchanged; encode rejection shall leave the output buffer and written count unchanged.",
       "category": "safety",
       "design_ids": ["SSDD-CMP-004"],
       "verification_methods": ["test"]
